@@ -242,15 +242,50 @@ void DigitQcTaskLaser::initialize(o2::framework::InitContext& /*ctx*/)
   mHistNumCFD = std::make_unique<TH1F>("HistNumCFD", "HistNumCFD", sNCHANNELS_PM, 0, sNCHANNELS_PM);
   mHistCFDEff = std::make_unique<TH1F>("CFD_efficiency", "CFD efficiency;ChannelID;efficiency", sNCHANNELS_PM, 0, sNCHANNELS_PM);
 
-  std::vector<unsigned int> vecChannelIDs;
+  mHistAmp2ADC0 = std::make_unique<TH2F>("AmpPerChannelADC0", "Amplitude vs Channel;Channel;Amp", sNCHANNELS_PM, 0, sNCHANNELS_PM, 4200, -100, 4100);
+  mHistAmp2ADC1 = std::make_unique<TH2F>("AmpPerChannelADC1", "Amplitude vs Channel;Channel;Amp", sNCHANNELS_PM, 0, sNCHANNELS_PM, 4200, -100, 4100);
+  getObjectsManager()->startPublishing(mHistAmp2ADC0.get());
+  getObjectsManager()->startPublishing(mHistAmp2ADC1.get());
+  getObjectsManager()->setDefaultDrawOptions(mHistAmp2ADC0.get(),"COLZ");
+  getObjectsManager()->setDefaultDrawOptions(mHistAmp2ADC1.get(),"COLZ");
+
+   std::vector<unsigned int> vecChannelIDs;
   if (auto param = mCustomParameters.find("ChannelIDs"); param != mCustomParameters.end()) {
     const auto chIDs = param->second;
     const std::string del = ",";
     vecChannelIDs = parseParameters<unsigned int>(chIDs, del);
   }
+  else {
+    for (unsigned int iCh = 0; iCh < o2::ft0::Constants::sNCHANNELS_PM; iCh++)
+      vecChannelIDs.push_back(iCh);
+  }
+
+  std::vector<unsigned int> vecRefPMTChannelIDs;
+  if (auto param = mCustomParameters.find("RefPMTChannelIDs"); param != mCustomParameters.end()) {
+    const auto chIDs = param->second;
+    const std::string del = ",";
+      vecRefPMTChannelIDs = parseParameters<unsigned int>(chIDs, del);
+  }
+
   for (const auto& entry : vecChannelIDs) {
     mSetAllowedChIDs.insert(entry);
   }
+ 
+   for (const auto& entry : vecRefPMTChannelIDs) {
+    mSetRefPMTChIDs.insert(entry);
+  }
+
+   for (const auto& RefPMTChID : mSetRefPMTChIDs) {
+     auto pairHistAmpVsBCADC0 = mMapHistAmpVsBCADC0.insert({RefPMTChID, new TH2F(Form("ADC0_Amp_vs_BC_channel%i", RefPMTChID), Form("Amplitude vs BC, channel %i;Amp;BC", RefPMTChID), 1000, 0, 1000, 1000, 0, 1000) });
+     auto pairHistAmpVsBCADC1 = mMapHistAmpVsBCADC1.insert({RefPMTChID, new TH2F(Form("ADC1_Amp_vs_BC_channel%i", RefPMTChID), Form("Amplitude vs BC, channel %i;Amp;BC", RefPMTChID), 1000, 0, 1000, 1000, 0, 1000) });
+     if (pairHistAmpVsBCADC0.second) {
+       getObjectsManager()->startPublishing(pairHistAmpVsBCADC0.first->second);
+     }
+     if (pairHistAmpVsBCADC1.second) {
+      getObjectsManager()->startPublishing(pairHistAmpVsBCADC1.first->second);
+     }
+   }  
+   
   std::vector<unsigned int> vecChannelIDsAmpVsTime;
   if (auto param = mCustomParameters.find("ChannelIDsAmpVsTime"); param != mCustomParameters.end()) {
     const auto chIDs = param->second;
@@ -346,6 +381,11 @@ void DigitQcTaskLaser::startOfActivity(Activity& activity)
   for (auto& entry : mMapHistAmpVsTime) {
     entry.second->Reset();
   }
+
+  mHistAmp2ADC0->Reset();
+  mHistAmp2ADC1->Reset();
+  for (auto& entry : mMapHistAmpVsBCADC0) entry.second->Reset();
+  for (auto& entry : mMapHistAmpVsBCADC1) entry.second->Reset();
 }
 
 void DigitQcTaskLaser::startOfCycle()
@@ -499,6 +539,29 @@ void DigitQcTaskLaser::monitorData(o2::framework::ProcessingContext& ctx)
         break;
     }
 
+    auto channels = ctx.inputs().get<gsl::span<o2::ft0::ChannelData>>("channels");
+    auto digits = ctx.inputs().get<gsl::span<o2::ft0::Digit>>("digits");
+    for (auto& digit : digits) {
+      const auto& vecChData = digit.getBunchChannelData(channels);
+      for (const auto& chData : vecChData){
+	if(chData.getFlag(o2::ft0::ChannelData::kNumberADC))
+	  mHistAmp2ADC1->Fill(static_cast<Double_t>(chData.ChId), static_cast<Double_t>(chData.QTCAmpl));
+	else
+	  mHistAmp2ADC0->Fill(static_cast<Double_t>(chData.ChId), static_cast<Double_t>(chData.QTCAmpl));
+	if (mSetRefPMTChIDs.find(static_cast<unsigned int>(chData.ChId)) != mSetRefPMTChIDs.end()){
+	  if(chData.getFlag(o2::ft0::ChannelData::kNumberADC))
+	    mMapHistAmpVsBCADC1[chData.ChId]->Fill(chData.QTCAmpl, digit.getIntRecord().bc);
+	  else
+	    mMapHistAmpVsBCADC0[chData.ChId]->Fill(chData.QTCAmpl, digit.getIntRecord().bc);
+	}
+      }
+    }
+
+
+
+
+
+    
     for (const auto& entry : mMapTrgSoftware) {
       if (entry.second)
         mHistTriggersSw->Fill(entry.first);
@@ -583,6 +646,13 @@ void DigitQcTaskLaser::reset()
   for (auto& entry : mMapHistAmpVsTime) {
     entry.second->Reset();
   }
+  mHistAmp2ADC0->Reset();
+  mHistAmp2ADC1->Reset();
+  for (auto& entry : mMapHistAmpVsBCADC0) entry.second->Reset();
+  for (auto& entry : mMapHistAmpVsBCADC1) entry.second->Reset();
 }
+
+
+
 
 } // namespace o2::quality_control_modules::ft0

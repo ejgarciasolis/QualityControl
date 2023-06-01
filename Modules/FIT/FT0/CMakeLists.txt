@@ -44,7 +44,7 @@ add_root_dictionary(O2QcFT0
           include/FT0/Utilities.h
           include/FT0/MergedTreeCheck.h
           include/FT0/RecPointsQcTask.h
-	  include/FT0/LaserAgingFT0Task.h			
+	  include/FT0/LaserAgingFT0Task.h
   LINKDEF include/FT0/LinkDef.h)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/FT0

@@ -52,9 +52,7 @@ void LaserAgingFT0Task::initialize(o2::framework::InitContext& /*ctx*/)
   getObjectsManager()->startPublishing(mHistAmp2ADC1.get());
   getObjectsManager()->setDefaultDrawOptions(mHistAmp2ADC0.get(),"COLZ");
   getObjectsManager()->setDefaultDrawOptions(mHistAmp2ADC1.get(),"COLZ");
- 
-
-  
+   
   std::vector<unsigned int> vecChannelIDs;
   std::vector<unsigned int> vecRefPMTChannelIDs;
   
@@ -71,13 +69,10 @@ void LaserAgingFT0Task::initialize(o2::framework::InitContext& /*ctx*/)
     const std::string del = ",";
     vecRefPMTChannelIDs = parseParameters<unsigned int>(chIDs, del);
   }
+  
   for (const auto& entry : vecChannelIDs) {
     mSetAllowedChIDs.insert(entry);
   }
-  for (const auto& entry : vecRefPMTChannelIDs) {
-    mSetRefPMTChIDs.insert(entry);
-  }
-  
   for (const auto& entry : vecRefPMTChannelIDs) {
     mSetRefPMTChIDs.insert(entry);
   }

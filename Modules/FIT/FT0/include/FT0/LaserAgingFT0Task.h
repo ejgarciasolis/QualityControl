@@ -90,10 +90,6 @@ auto parseParameters(const std::string& param, const std::string& del)
     }
     return vecResult;
   }
-
-
-
-
   
   std::unique_ptr<TH2F> mHistAmp2ADC0;
   std::unique_ptr<TH2F> mHistAmp2ADC1;

@@ -97,6 +97,9 @@ class DigitQcTaskLaser final : public TaskInterface
   TList* mListHistGarbage;
   std::set<unsigned int> mSetAllowedChIDs;
   std::set<unsigned int> mSetAllowedChIDsAmpVsTime;
+
+  std::set<unsigned int> mSetRefPMTChIDs;
+  
   std::array<o2::InteractionRecord, sNCHANNELS_PM> mStateLastIR2Ch;
   std::array<uint8_t, sNCHANNELS_PM> mChID2PMhash; // map chID->hashed PM value
   uint8_t mTCMhash;                                // hash value for TCM, and bin position in hist
@@ -152,6 +155,12 @@ class DigitQcTaskLaser final : public TaskInterface
   std::unique_ptr<TH2F> mHistOrbitVsFEEmodules;
   std::unique_ptr<TH1F> mHistTriggersSw;
   std::unique_ptr<TH2F> mHistTriggersSoftwareVsTCM;
+
+  std::unique_ptr<TH2F> mHistAmp2ADC0;
+  std::unique_ptr<TH2F> mHistAmp2ADC1;
+  std::map<unsigned int, TH2F*> mMapHistAmpVsBCADC0;
+  std::map<unsigned int, TH2F*> mMapHistAmpVsBCADC1;
+
 
   // Hashed maps
   static const size_t mapSize = 256;
