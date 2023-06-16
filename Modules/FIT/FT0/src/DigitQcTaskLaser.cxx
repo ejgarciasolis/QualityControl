@@ -242,8 +242,8 @@ void DigitQcTaskLaser::initialize(o2::framework::InitContext& /*ctx*/)
   mHistNumCFD = std::make_unique<TH1F>("HistNumCFD", "HistNumCFD", sNCHANNELS_PM, 0, sNCHANNELS_PM);
   mHistCFDEff = std::make_unique<TH1F>("CFD_efficiency", "CFD efficiency;ChannelID;efficiency", sNCHANNELS_PM, 0, sNCHANNELS_PM);
 
-  mHistAmp2ADC0 = std::make_unique<TH2F>("AmpPerChannelADC0", "Amplitude vs Channel;Channel;Amp", sNCHANNELS_PM, 0, sNCHANNELS_PM, 4200, -100, 4100);
-  mHistAmp2ADC1 = std::make_unique<TH2F>("AmpPerChannelADC1", "Amplitude vs Channel;Channel;Amp", sNCHANNELS_PM, 0, sNCHANNELS_PM, 4200, -100, 4100);
+  mHistAmp2ADC0 = std::make_unique<TH2F>("AmpPerChannelADCzero", "Amplitude vs Channel;Channel;Amp", sNCHANNELS_PM, 0, sNCHANNELS_PM, 4200, -100, 4100);
+  mHistAmp2ADC1 = std::make_unique<TH2F>("AmpPerChannelADCone", "Amplitude vs Channel;Channel;Amp", sNCHANNELS_PM, 0, sNCHANNELS_PM, 4200, -100, 4100);
   getObjectsManager()->startPublishing(mHistAmp2ADC0.get());
   getObjectsManager()->startPublishing(mHistAmp2ADC1.get());
   getObjectsManager()->setDefaultDrawOptions(mHistAmp2ADC0.get(),"COLZ");
@@ -276,8 +276,8 @@ void DigitQcTaskLaser::initialize(o2::framework::InitContext& /*ctx*/)
   }
 
    for (const auto& RefPMTChID : mSetRefPMTChIDs) {
-     auto pairHistAmpVsBCADC0 = mMapHistAmpVsBCADC0.insert({RefPMTChID, new TH2F(Form("ADC0_Amp_vs_BC_channel%i", RefPMTChID), Form("Amplitude vs BC, channel %i;Amp;BC", RefPMTChID), 1000, 0, 1000, 1000, 0, 1000) });
-     auto pairHistAmpVsBCADC1 = mMapHistAmpVsBCADC1.insert({RefPMTChID, new TH2F(Form("ADC1_Amp_vs_BC_channel%i", RefPMTChID), Form("Amplitude vs BC, channel %i;Amp;BC", RefPMTChID), 1000, 0, 1000, 1000, 0, 1000) });
+     auto pairHistAmpVsBCADC0 = mMapHistAmpVsBCADC0.insert({RefPMTChID, new TH2F(Form("ADCzero_Amp_vs_BC_channel%i", RefPMTChID), Form("Amplitude vs BC, channel %i;Amp;BC", RefPMTChID), 1000, 0, 1000, 1000, 0, 1000) });
+     auto pairHistAmpVsBCADC1 = mMapHistAmpVsBCADC1.insert({RefPMTChID, new TH2F(Form("ADCone_Amp_vs_BC_channel%i", RefPMTChID), Form("Amplitude vs BC, channel %i;Amp;BC", RefPMTChID), 1000, 0, 1000, 1000, 0, 1000) });
      if (pairHistAmpVsBCADC0.second) {
        getObjectsManager()->startPublishing(pairHistAmpVsBCADC0.first->second);
      }
@@ -397,11 +397,12 @@ void DigitQcTaskLaser::monitorData(o2::framework::ProcessingContext& ctx)
 {
   auto channels = ctx.inputs().get<gsl::span<o2::ft0::ChannelData>>("channels");
   auto digits = ctx.inputs().get<gsl::span<o2::ft0::Digit>>("digits");
+
   for (auto& digit : digits) {
     // Exclude all BCs, in which laser signals are NOT expected (and trigger outputs are NOT blocked)
-    if (!digit.mTriggers.getOutputsAreBlocked()) {
-      continue;
-    }
+    // if (!digit.mTriggers.getOutputsAreBlocked()) {
+    //   continue;
+    // }
     const auto& vecChData = digit.getBunchChannelData(channels);
     bool isTCM = true;
     if (digit.mTriggers.getTimeA() == o2::fit::Triggers::DEFAULT_TIME && digit.mTriggers.getTimeC() == o2::fit::Triggers::DEFAULT_TIME) {
@@ -460,6 +461,20 @@ void DigitQcTaskLaser::monitorData(o2::framework::ProcessingContext& ctx)
         sumAmplC += chData.QTCAmpl;
         sumTimeC += chData.CFDTime;
         nFiredChannelsC++;
+      }
+
+      if(chData.getFlag(o2::ft0::ChannelData::kNumberADC)) {
+        mHistAmp2ADC1->Fill(chData.ChId, chData.QTCAmpl);
+      } else {
+        mHistAmp2ADC0->Fill(chData.ChId, chData.QTCAmpl);
+      }
+
+      if (mSetRefPMTChIDs.find(static_cast<unsigned int>(chData.ChId)) != mSetRefPMTChIDs.end()) {
+        if(chData.getFlag(o2::ft0::ChannelData::kNumberADC)) {
+          mMapHistAmpVsBCADC1[chData.ChId]->Fill(chData.QTCAmpl, digit.getIntRecord().bc);
+        } else {
+          mMapHistAmpVsBCADC0[chData.ChId]->Fill(chData.QTCAmpl, digit.getIntRecord().bc);
+        }
       }
     }
     if (isTCM) {
@@ -539,23 +554,23 @@ void DigitQcTaskLaser::monitorData(o2::framework::ProcessingContext& ctx)
         break;
     }
 
-    auto channels = ctx.inputs().get<gsl::span<o2::ft0::ChannelData>>("channels");
-    auto digits = ctx.inputs().get<gsl::span<o2::ft0::Digit>>("digits");
-    for (auto& digit : digits) {
-      const auto& vecChData = digit.getBunchChannelData(channels);
-      for (const auto& chData : vecChData){
-	if(chData.getFlag(o2::ft0::ChannelData::kNumberADC))
-	  mHistAmp2ADC1->Fill(static_cast<Double_t>(chData.ChId), static_cast<Double_t>(chData.QTCAmpl));
-	else
-	  mHistAmp2ADC0->Fill(static_cast<Double_t>(chData.ChId), static_cast<Double_t>(chData.QTCAmpl));
-	if (mSetRefPMTChIDs.find(static_cast<unsigned int>(chData.ChId)) != mSetRefPMTChIDs.end()){
-	  if(chData.getFlag(o2::ft0::ChannelData::kNumberADC))
-	    mMapHistAmpVsBCADC1[chData.ChId]->Fill(chData.QTCAmpl, digit.getIntRecord().bc);
-	  else
-	    mMapHistAmpVsBCADC0[chData.ChId]->Fill(chData.QTCAmpl, digit.getIntRecord().bc);
-	}
-      }
-    }
+    // auto channels = ctx.inputs().get<gsl::span<o2::ft0::ChannelData>>("channels");
+    // auto digits = ctx.inputs().get<gsl::span<o2::ft0::Digit>>("digits");
+    // for (auto& digit : digits) {
+    //   const auto& vecChData = digit.getBunchChannelData(channels);
+    //   for (const auto& chData : vecChData){
+	  //     if(chData.getFlag(o2::ft0::ChannelData::kNumberADC))
+	  //       mHistAmp2ADC1->Fill(static_cast<Double_t>(chData.ChId), static_cast<Double_t>(chData.QTCAmpl));
+	  //     else
+	  //       mHistAmp2ADC0->Fill(static_cast<Double_t>(chData.ChId), static_cast<Double_t>(chData.QTCAmpl));
+	  //     if (mSetRefPMTChIDs.find(static_cast<unsigned int>(chData.ChId)) != mSetRefPMTChIDs.end()){
+	  //       if(chData.getFlag(o2::ft0::ChannelData::kNumberADC))
+	  //         mMapHistAmpVsBCADC1[chData.ChId]->Fill(chData.QTCAmpl, digit.getIntRecord().bc);
+	  //       else
+	  //         mMapHistAmpVsBCADC0[chData.ChId]->Fill(chData.QTCAmpl, digit.getIntRecord().bc);
+	  //     }
+    //   }
+    // }
 
 
 

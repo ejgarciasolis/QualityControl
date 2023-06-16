@@ -46,8 +46,8 @@ void LaserAgingFT0Task::initialize(o2::framework::InitContext& /*ctx*/)
     ILOG(Debug, Devel) << "Custom parameter - myOwnKey: " << param->second << ENDM;
   }
 
-  mHistAmp2ADC0 = std::make_unique<TH2F>("AmpPerChannelADC0", "Amplitude vs Channel;Channel;Amp", sNCHANNELS_PM, 0, sNCHANNELS_PM, 4200, -100, 4100);
-  mHistAmp2ADC1 = std::make_unique<TH2F>("AmpPerChannelADC1", "Amplitude vs Channel;Channel;Amp", sNCHANNELS_PM, 0, sNCHANNELS_PM, 4200, -100, 4100);
+  mHistAmp2ADC0 = std::make_unique<TH2F>("AmpPerChannelADCzero", "Amplitude vs Channel;Channel;Amp", sNCHANNELS_PM, 0, sNCHANNELS_PM, 4200, -100, 4100);
+  mHistAmp2ADC1 = std::make_unique<TH2F>("AmpPerChannelADCone", "Amplitude vs Channel;Channel;Amp", sNCHANNELS_PM, 0, sNCHANNELS_PM, 4200, -100, 4100);
   getObjectsManager()->startPublishing(mHistAmp2ADC0.get());
   getObjectsManager()->startPublishing(mHistAmp2ADC1.get());
   getObjectsManager()->setDefaultDrawOptions(mHistAmp2ADC0.get(),"COLZ");
@@ -78,8 +78,8 @@ void LaserAgingFT0Task::initialize(o2::framework::InitContext& /*ctx*/)
   }
 
   for (const auto& RefPMTChID : mSetRefPMTChIDs) {
-    auto pairHistAmpVsBCADC0 = mMapHistAmpVsBCADC0.insert({ RefPMTChID, new TH2F(Form("ADC0_Amp_vs_BC_channel%i", RefPMTChID), Form("Amplitude vs BC, channel %i;Amp;BC", RefPMTChID), 1000, 0, 1000, 1000, 0, 1000) });
-    auto pairHistAmpVsBCADC1 = mMapHistAmpVsBCADC1.insert({ RefPMTChID, new TH2F(Form("ADC1_Amp_vs_BC_channel%i", RefPMTChID), Form("Amplitude vs BC, channel %i;Amp;BC", RefPMTChID), 1000, 0, 1000, 1000, 0, 1000) });
+    auto pairHistAmpVsBCADC0 = mMapHistAmpVsBCADC0.insert({ RefPMTChID, new TH2F(Form("ADCzero_Amp_vs_BC_channel%i", RefPMTChID), Form("Amplitude vs BC, channel %i;Amp;BC", RefPMTChID), 1000, 0, 1000, 1000, 0, 1000) });
+    auto pairHistAmpVsBCADC1 = mMapHistAmpVsBCADC1.insert({ RefPMTChID, new TH2F(Form("ADCone_Amp_vs_BC_channel%i", RefPMTChID), Form("Amplitude vs BC, channel %i;Amp;BC", RefPMTChID), 1000, 0, 1000, 1000, 0, 1000) });
     if (pairHistAmpVsBCADC0.second) {
       getObjectsManager()->startPublishing(pairHistAmpVsBCADC0.first->second);
       }
