@@ -46,6 +46,11 @@
                 "moduleName": "QcITS",
                 "policy": "OnEachSeparately",
                 "detectorName": "ITS",
+                "checkParameters": {
+                      "DecLinkErrorLimits": "1, 1, 1, 1, 1, 1000, 1000, 1000, 1000, 1000, 1000, 1, 1, 1000, 1000, 1, 1, 1, 1, 1000, 1000, 50, 50",
+                      "plotWithTextMessage": "",
+                      "textMessage": ""
+                },
                 "dataSource": [{
                     "type": "Task",
                     "name": "ITSDECODING",

@@ -35,13 +35,13 @@ void TH1FTask::initialize(o2::framework::InitContext& /*ctx*/)
   ILOG(Debug, Devel) << "initialize TH1FTask" << ENDM;
 
   int histogramsNumber = 1;
-  if (auto param = mCustomParameters.find("histoNumber"); param != mCustomParameters.end()) {
-    histogramsNumber = stoi(param->second);
+  if (mCustomParameters.count("histoNumber") > 0) {
+    histogramsNumber = stoi(mCustomParameters.at("histoNumber"));
   }
 
   int binsNumber = 20;
-  if (auto param = mCustomParameters.find("binsNumber"); param != mCustomParameters.end()) {
-    binsNumber = stoi(param->second);
+  if (mCustomParameters.count("binsNumber") > 0) {
+    binsNumber = stoi(mCustomParameters.at("binsNumber"));
   }
 
   ILOG(Info, Support) << "Will create " << histogramsNumber << " histograms." << ENDM;
@@ -55,7 +55,7 @@ void TH1FTask::initialize(o2::framework::InitContext& /*ctx*/)
   }
 }
 
-void TH1FTask::startOfActivity(Activity& /*activity*/)
+void TH1FTask::startOfActivity(const Activity& /*activity*/)
 {
   ILOG(Debug, Devel) << "startOfActivity" << ENDM;
   for (auto& histo : mHistograms) {
@@ -93,7 +93,7 @@ void TH1FTask::endOfCycle()
   ILOG(Debug, Devel) << "endOfCycle" << ENDM;
 }
 
-void TH1FTask::endOfActivity(Activity& /*activity*/)
+void TH1FTask::endOfActivity(const Activity& /*activity*/)
 {
   ILOG(Debug, Devel) << "endOfActivity" << ENDM;
 }

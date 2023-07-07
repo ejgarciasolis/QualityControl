@@ -22,9 +22,8 @@
 #include <TH1.h>
 #include <TH2.h>
 
-class TH2I;
-class TH1I;
-class TH2F;
+class TH2D;
+class TH1D;
 
 using namespace o2::quality_control::core;
 
@@ -41,11 +40,11 @@ class ITSDecodingErrorTask final : public TaskInterface
   ~ITSDecodingErrorTask() override;
 
   void initialize(o2::framework::InitContext& ctx) override;
-  void startOfActivity(Activity& activity) override;
+  void startOfActivity(const Activity& activity) override;
   void startOfCycle() override;
   void monitorData(o2::framework::ProcessingContext& ctx) override;
   void endOfCycle() override;
-  void endOfActivity(Activity& activity) override;
+  void endOfActivity(const Activity& activity) override;
   void reset() override;
 
  private:
@@ -65,8 +64,8 @@ class ITSDecodingErrorTask final : public TaskInterface
   TH1D* mChipErrorPlots;
   TH1D* mLinkErrorPlots;
   TH2D* mChipErrorVsChipid[7]; // chip ErrorVsChipid
-  TH2I* mLinkErrorVsFeeid;     // link ErrorVsFeeid
-  TH2I* mChipErrorVsFeeid;     // chip ErrorVsFeeid
+  TH2D* mLinkErrorVsFeeid;     // link ErrorVsFeeid
+  TH2D* mChipErrorVsFeeid;     // chip ErrorVsFeeid
 };
 
 } // namespace o2::quality_control_modules::its

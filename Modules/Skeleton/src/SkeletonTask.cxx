@@ -19,7 +19,6 @@
 
 #include "QualityControl/QcInfoLogger.h"
 #include "Skeleton/SkeletonTask.h"
-#include <Framework/InputRecord.h>
 #include <Framework/InputRecordWalker.h>
 #include <Framework/DataRefUtils.h>
 
@@ -57,11 +56,21 @@ void SkeletonTask::initialize(o2::framework::InitContext& /*ctx*/)
   }
 }
 
-void SkeletonTask::startOfActivity(Activity& activity)
+void SkeletonTask::startOfActivity(const Activity& activity)
 {
-  // THUS FUNCTION BODY IS AN EXAMPLE. PLEASE REMOVE EVERYTHING YOU DO NOT NEED.
+  // THIS FUNCTION BODY IS AN EXAMPLE. PLEASE REMOVE EVERYTHING YOU DO NOT NEED.
   ILOG(Debug, Devel) << "startOfActivity " << activity.mId << ENDM;
   mHistogram->Reset();
+
+  // Example: retrieve custom parameters
+  std::string parameter;
+  // first we try for the current activity. It returns an optional.
+  if (auto param = mCustomParameters.atOptional("myOwnKey", activity)) {
+    parameter = param.value(); // we got a value
+  } else {
+    // we did not get a value. We ask for the "default" runtype and beamtype and we specify a default return value.
+    parameter = mCustomParameters.atOrDefaultValue("myOwnKey", "some default");
+  }
 }
 
 void SkeletonTask::startOfCycle()
@@ -72,7 +81,7 @@ void SkeletonTask::startOfCycle()
 
 void SkeletonTask::monitorData(o2::framework::ProcessingContext& ctx)
 {
-  // THUS FUNCTION BODY IS AN EXAMPLE. PLEASE REMOVE EVERYTHING YOU DO NOT NEED.
+  // THIS FUNCTION BODY IS AN EXAMPLE. PLEASE REMOVE EVERYTHING YOU DO NOT NEED.
 
   // In this function you can access data inputs specified in the JSON config file, for example:
   //   "query": "random:ITS/RAWDATA/0"
@@ -133,19 +142,19 @@ void SkeletonTask::monitorData(o2::framework::ProcessingContext& ctx)
 
 void SkeletonTask::endOfCycle()
 {
-  // THUS FUNCTION BODY IS AN EXAMPLE. PLEASE REMOVE EVERYTHING YOU DO NOT NEED.
+  // THIS FUNCTION BODY IS AN EXAMPLE. PLEASE REMOVE EVERYTHING YOU DO NOT NEED.
   ILOG(Debug, Devel) << "endOfCycle" << ENDM;
 }
 
-void SkeletonTask::endOfActivity(Activity& /*activity*/)
+void SkeletonTask::endOfActivity(const Activity& /*activity*/)
 {
-  // THUS FUNCTION BODY IS AN EXAMPLE. PLEASE REMOVE EVERYTHING YOU DO NOT NEED.
+  // THIS FUNCTION BODY IS AN EXAMPLE. PLEASE REMOVE EVERYTHING YOU DO NOT NEED.
   ILOG(Debug, Devel) << "endOfActivity" << ENDM;
 }
 
 void SkeletonTask::reset()
 {
-  // THUS FUNCTION BODY IS AN EXAMPLE. PLEASE REMOVE EVERYTHING YOU DO NOT NEED.
+  // THIS FUNCTION BODY IS AN EXAMPLE. PLEASE REMOVE EVERYTHING YOU DO NOT NEED.
 
   // clean all the monitor objects here
 

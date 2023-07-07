@@ -59,11 +59,11 @@ class ITSRawTask : public TaskInterface // todo add back the "final" when doxyge
 
   // Definition of the methods for the template method pattern
   void initialize(o2::framework::InitContext& ctx) override;
-  void startOfActivity(Activity& activity) override;
+  void startOfActivity(const Activity& activity) override;
   void startOfCycle() override;
   void monitorData(o2::framework::ProcessingContext& ctx) override;
   void endOfCycle() override;
-  void endOfActivity(Activity& activity) override;
+  void endOfActivity(const Activity& activity) override;
   void reset() override;
   void setNChips(int n)
   {
@@ -150,7 +150,7 @@ class ITSRawTask : public TaskInterface // todo add back the "final" when doxyge
   std::array<unsigned int, NError> mErrorPre;
   std::array<unsigned int, NError> mErrorPerFile;
 
-  //unsigned int Error[NError];
+  // unsigned int Error[NError];
   TPaveText* pt[NError];
   TPaveText* ptFileName;
   TPaveText* ptNFile;

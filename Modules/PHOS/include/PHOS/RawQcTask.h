@@ -31,6 +31,7 @@ class TH2F;
 #include <TSpectrum.h>
 #include "PHOS/TH2FMean.h"
 #include "PHOS/TH2SBitmask.h"
+#include "PHOS/TH1Fraction.h"
 
 using namespace o2::quality_control::core;
 
@@ -48,11 +49,11 @@ class RawQcTask final : public TaskInterface
 
   // Definition of the methods for the template method pattern
   void initialize(o2::framework::InitContext& ctx) override;
-  void startOfActivity(Activity& activity) override;
+  void startOfActivity(const Activity& activity) override;
   void startOfCycle() override;
   void monitorData(o2::framework::ProcessingContext& ctx) override;
   void endOfCycle() override;
-  void endOfActivity(Activity& activity) override;
+  void endOfActivity(const Activity& activity) override;
   void reset() override;
 
  protected:
@@ -160,6 +161,9 @@ class RawQcTask final : public TaskInterface
   static constexpr short kNhist2DBitmask = 1;
   enum histos2DBitmask { kErrorType };
 
+  static constexpr short kNratio1D = 1;
+  enum ratios1D { kErrorTypeOccurance };
+
   void InitHistograms();
 
   void CreatePhysicsHistograms();
@@ -181,11 +185,13 @@ class RawQcTask final : public TaskInterface
   bool mFinalized = false; ///< if final histograms calculated
   bool mCheckChi2 = false; ///< scan Chi2 distributions
   bool mTrNoise = false;   ///< check mathing of trigger summary tables and tr.digits
+  unsigned long long eventCounter = 0;
 
   std::array<TH1F*, kNhist1D> mHist1D = { nullptr };                      ///< Array of 1D histograms
   std::array<TH2F*, kNhist2D> mHist2D = { nullptr };                      ///< Array of 2D histograms
   std::array<TH2FMean*, kNhist2DMean> mHist2DMean = { nullptr };          ///< Array of 2D mean histograms
   std::array<TH2SBitmask*, kNhist2DBitmask> mHist2DBitmask = { nullptr }; ///< Array of 2D mean histograms
+  std::array<TH1Fraction*, kNratio1D> mFractions1D = { nullptr };         ///< Array of mergeable 1D fractions
 
   bool mInitBadMap = true;                           //! BadMap had to be initialized
   const o2::phos::BadChannelsMap* mBadMap = nullptr; //! Bad map for comparison

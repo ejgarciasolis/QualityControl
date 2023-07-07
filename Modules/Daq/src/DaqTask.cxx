@@ -95,7 +95,7 @@ void DaqTask::initialize(o2::framework::InitContext& /*ctx*/)
   }
 }
 
-void DaqTask::startOfActivity(Activity& activity)
+void DaqTask::startOfActivity(const Activity& activity)
 {
   ILOG(Debug, Devel) << "startOfActivity: " << activity.mId << ENDM;
   reset();
@@ -128,7 +128,7 @@ void DaqTask::endOfCycle()
   }
 }
 
-void DaqTask::endOfActivity(Activity& /*activity*/)
+void DaqTask::endOfActivity(const Activity& /*activity*/)
 {
   ILOG(Debug, Devel) << "endOfActivity" << ENDM;
 
@@ -222,7 +222,8 @@ void DaqTask::monitorInputRecord(InputRecord& inputRecord)
   mNumberInputs->Fill(inputRecord.countValidInputs());
 }
 
-void printPage(const DPLRawParser::Iterator<const DataRef>& data)
+template <class T>
+void printPage(const T& data)
 {
   auto const* raw = data.raw();         // retrieving the raw pointer of the page
   auto const* rawPayload = data.data(); // retrieving payload pointer of the page

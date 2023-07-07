@@ -56,6 +56,12 @@
         "moduleName" : "QcITS",
         "policy" : "OnEachSeparately",
         "detectorName" : "ITS",
+                "checkParameters": {
+                      "plotWithTextMessage": "",
+                      "textMessage": "",
+                      "EtaRatio": "0.3",
+                      "PhiRatio": "0.3"
+        },
         "dataSource" : [ {
           "type" : "Task",
           "name" : "ITSTrackTask",

@@ -18,6 +18,7 @@
 #define QUALITYCONTROL_TPCUTILITY_H
 
 #include "QualityControl/ObjectsManager.h"
+#include "QualityControl/CustomParameters.h"
 
 #include "TPCBase/CalDet.h"
 #include "DataFormatsTPC/ClusterNative.h"
@@ -49,7 +50,7 @@ std::vector<TCanvas*> toVector(std::vector<std::unique_ptr<TCanvas>>& input);
 /// \param canvases Vector containing three std::unique_ptr<TCanvas>, will be filled
 /// \param params Information about the ranges of the histograms that will be drawn on the canvases. The params can be set via 'taskParameters' in the config file of corresponding the task.
 /// \param paramName Name of the observable that is stored in calDet
-void fillCanvases(const o2::tpc::CalDet<float>& calDet, std::vector<std::unique_ptr<TCanvas>>& canvases, const std::unordered_map<std::string, std::string>& params, const std::string paramName);
+void fillCanvases(const o2::tpc::CalDet<float>& calDet, std::vector<std::unique_ptr<TCanvas>>& canvases, const quality_control::core::CustomParameters& params, const std::string paramName);
 
 /// \brief Clears all canvases
 /// \param canvases Contains the canvases that will be cleared
@@ -71,5 +72,15 @@ void getTimestamp(const std::string& metaInfo, std::vector<long>& timeStamps);
 /// \param nFiles Number of files that shall be processed
 /// \param limit Most recent timestamp to be processed
 std::vector<long> getDataTimestamps(const o2::ccdb::CcdbApi& cdbApi, const std::string_view path, const unsigned int nFiles, const long limit);
+
+/// \brief Calculates mean and stddev from yValues of a TGraph
+/// \param yValues const double* pointer to yValues of TGraph (via TGraph->GetY())
+/// \param yErrors const double* pointer to y uncertainties of TGraph (via TGraph->GetEY())
+/// \param useErrors bool whether uncertainties should be used in calculation of mean and stddev of mean
+/// \param firstPoint const int, first point of yValues to include in calculation
+/// \param lastPoint const int, last point of yValues to include in calculation
+/// \param mean double&, reference to double that should store mean
+/// \param stddevOfMean double&, reference to double that should store stddev of mean
+void calculateStatistics(const double* yValues, const double* yErrors, bool useErrors, const int firstPoint, const int lastPoint, double& mean, double& stddevOfMean);
 } // namespace o2::quality_control_modules::tpc
 #endif // QUALITYCONTROL_TPCUTILITY_H

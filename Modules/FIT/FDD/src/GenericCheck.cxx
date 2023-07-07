@@ -17,7 +17,6 @@
 #include "FDD/GenericCheck.h"
 #include "QualityControl/MonitorObject.h"
 #include "QualityControl/Quality.h"
-#include "QualityControl/QcInfoLogger.h"
 // ROOT
 #include <TH1.h>
 #include <TH2.h>
@@ -101,8 +100,7 @@ void GenericCheck::configure()
   }
 
   // Align mDeadChannelMap with downloaded one
-  std::map<std::string, std::string> metadata;
-  mDeadChannelMap = retrieveConditionAny<o2::fit::DeadChannelMap>(mPathDeadChannelMap, metadata, (long)-1);
+  mDeadChannelMap = retrieveConditionAny<o2::fit::DeadChannelMap>(mPathDeadChannelMap);
   if (!mDeadChannelMap || !mDeadChannelMap->map.size()) {
     ILOG(Error, Support) << "object \"" << mPathDeadChannelMap << "\" NOT retrieved (or empty). All channels assumed to be alive!" << ENDM;
     mDeadChannelMap = new o2::fit::DeadChannelMap();
