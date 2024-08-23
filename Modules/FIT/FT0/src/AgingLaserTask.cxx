@@ -68,7 +68,7 @@ void AgingLaserTask::initialize(o2::framework::InitContext&)
 
   mDetectorAmpCut = o2::quality_control_modules::common::getFromConfig<int>(mCustomParameters, "detectorAmpCut", 0);
   mReferenceAmpCut = o2::quality_control_modules::common::getFromConfig<int>(mCustomParameters, "referenceAmpCut", 100);
-
+  
   // BCs
 
   // Laser trigger BCs
